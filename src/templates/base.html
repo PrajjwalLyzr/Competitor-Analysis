@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competitor Analysis</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="\static\css\style.css">
+</head>
+<body style="background: radial-gradient(#4a3486, #211545, #0a0421);">
+    <header>
+        <nav class="header">
+            <a class="outbound-link" href="https://www.lyzr.ai/" target="_blank" rel="noopener noreferrer">Home</a>
+            <a class="outbound-link" href="https://studio.lyzr.ai/login" target="_blank" rel="noopener noreferrer">Studio</a>
+            <a class="outbound-link" href="https://www.lyzr.ai/book-demo/" target="_blank" rel="noopener noreferrer">Book Demo</a>
+            
+        </nav>
+      </header>
+        <div class="container-lg">
+            <div class="image-container">
+                <img class="responsive-image" src="/static/img/Alan.png" alt="Alan-the-AI-Business-Analyst">
+              </div>
+            
+            <!-- <h1 class="mt-5">Competitor Analysis</h1> -->
+            <form method="post" action="{{ url_for('CompetitorAnalysis.analysis') }}">
+            <div class="input-container">
+                <div class="form-group first-input">
+                    <label for="competitor_name">Competitor Name</label>
+                    <input type="text" class="form-control" id="competitor_name" name="competitor_name" required>
+                </div>
+                <div class="form-group second-input">
+                    <label for="competitor_name">Competitor Website</label>
+                    <input type="text" class="form-control" id="competitor_website" name="competitor_website" required>
+                </div>
+            </div>
+                <div class="form-group">
+                    <label for="key_metrics">Specific area of focus for the research (OPTIONAL)</label>
+                    <input type="text" class="form-control" id="key_metrics" name="key_metrics">
+                </div>
+                <!-- <a href="{{ url_for('CompetitorAnalysis.analysis') }}" class="btn btn-primary">Generate Report</a> -->
+
+                <button type="submit" class="btn btn-primary">Generate Report</button>
+                
+            </form>
+        
+
+        {% block content %}
+            
+            
+        {% endblock %}
+    </div>
+</body>
+</html>
