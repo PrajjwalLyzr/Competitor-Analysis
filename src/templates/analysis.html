@@ -11,13 +11,38 @@
 
 </div>
 
-    <div style="color: #fff;">
-        {% if competitorData %}
-            <br>
-            {{competitorData}}
-        {% endif %}
+<div class="company-data">
+    <h3>SWOT Analysis</h3>
+    <div class="company-data-child">
+        <div class="company-data-child-first">
+            <div class="card strength">
+                {% if strength %}
+                    {{strength}}
+                {% endif %}
+            </div>
+            <div class="card weakness">
+                {% if weakness %}
+                    {{weakness}}
+                {% endif %}
+            </div>
+
+        </div>
+        <div class="company-data-child-second">
+            <div class="card opportunity">
+                {% if opportunity %}
+                    {{opportunity}}
+                {% endif %}
+            </div>
+            <div class="card threat">
+                {% if threat %}
+                    {{threat}}
+                {% endif %}
+            </div>
+        </div>
 
     </div>
+</div>
+
 
 
     

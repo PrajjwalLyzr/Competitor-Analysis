@@ -7,7 +7,7 @@ import newspaper
 import streamlit as st
 from dotenv import load_dotenv
 from gnews import GNews
-from lyzr_automata import Agent, Task
+from lyzr_automata import Agent, LinearSyncPipeline, Task
 from lyzr_automata.ai_models.openai import OpenAIModel
 from lyzr_automata.ai_models.perplexity import PerplexityModel
 from lyzr_automata.tasks.task_literals import InputType, OutputType
@@ -154,6 +154,58 @@ def specific_research_analysis(company_name, website_name, specific_research_are
     ).execute()
 
     return search_task["choices"][0]["message"]["content"]
+
+def swot_analysis(company_name, website_name=None, metrics=None):
+    Analyst = Agent(
+        prompt_persona=f"""
+                        You are an analyst who is expert in SWOT analysis and your task is to conducting a comprehensive SWOT analysis for a company named {[company_name]}, your analysis should consider various internal and external factors. 
+                        The SWOT analysis will help the company understand its current strategic position and identify areas for improvement and growth.
+                        """,
+        role="Analyst"
+    )
+
+    Strength = Task(
+        name="Finding Strenght of Company",
+        agent=Analyst,
+        output_type=OutputType.TEXT,
+        input_type=InputType.TEXT,
+        model=perplexity_model_text,
+        instructions=f"List the strengths of {company_name} based on its recent financial performance, market position, and internal capabilities. What are the unique advantages of f{company_name} compared to its competitors? [!IMPORTANT] just provide the bullet points nothing else",
+        log_output=True,
+    ).execute()
+
+    Weakness = Task(
+        name="Finding Weakness of Company",
+        agent=Analyst,
+        output_type=OutputType.TEXT,
+        input_type=InputType.TEXT,
+        model=perplexity_model_text,
+        instructions=f"Identify the weaknesses of {company_name} considering its financial performance, operational inefficiencies, and market challenges. What internal challenges does {company_name} face that could hinder its performance? [!IMPORTANT] just provide the bullet points nothing else",
+        log_output=True,
+    ).execute()
+
+    Opportunities = Task(
+        name="Finding Opportunities of Company",
+        agent=Analyst,
+        output_type=OutputType.TEXT,
+        input_type=InputType.TEXT,
+        model=perplexity_model_text,
+        instructions=f"What are the growth opportunities for {company_name} in the current market landscape? Identify potential market trends or technologies that {company_name} could leverage. [!IMPORTANT] just provide the bullet points nothing else",
+        log_output=True,
+    ).execute()
+
+    Threats = Task(
+        name="Finding Threats of Company",
+        agent=Analyst,
+        output_type=OutputType.TEXT,
+        input_type=InputType.TEXT,
+        model=perplexity_model_text,
+        instructions=f"List the potential threats to {company_name} from external market factors, competition, and regulatory changes. What are the major risks that could negatively impact {company_name}'s business? [!IMPORTANT] just provide the bullet points nothing else",
+        log_output=True,
+    ).execute()
+    
+
+    return Strength["choices"][0]["message"]["content"], Weakness["choices"][0]["message"]["content"], Opportunities["choices"][0]["message"]["content"]
 
 
 # def save_raw_data_database(
