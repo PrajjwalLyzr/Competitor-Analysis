@@ -1,5 +1,5 @@
 from flask import Blueprint
-from Controllers import GetController, PostController
+from src.Controllers import GetController, PostController
 
 
 
