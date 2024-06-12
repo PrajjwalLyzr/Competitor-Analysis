@@ -56,75 +56,75 @@ def search_competitor_analysis(company_name, website_name):
     return search_task["choices"][0]["message"]["content"]
 
 
-def scrape_competitor_analysis(company_name, website_name):
-    scraped_data = ""
-    google_news = GNews(period="7d", max_results=25)
-    company_news = google_news.get_news(company_name)
-    website_name = utils.remove_www(website_name)
-    website_news = google_news.get_news_by_site(website_name)
+# def scrape_competitor_analysis(company_name, website_name):
+#     scraped_data = ""
+#     google_news = GNews(period="7d", max_results=25)
+#     company_news = google_news.get_news(company_name)
+#     website_name = utils.remove_www(website_name)
+#     website_news = google_news.get_news_by_site(website_name)
 
-    news_article_list = []
-    news_dict = {}
-    for news in company_news:
-        news_article_list.append(news["title"])
-        key = utils.format_key(news["title"])
-        news_dict[key] = news
+#     news_article_list = []
+#     news_dict = {}
+#     for news in company_news:
+#         news_article_list.append(news["title"])
+#         key = utils.format_key(news["title"])
+#         news_dict[key] = news
 
-    for news in website_news:
-        news_article_list.append(news["title"])
-        key = utils.format_key(news["title"])
-        news_dict[key] = news
+#     for news in website_news:
+#         news_article_list.append(news["title"])
+#         key = utils.format_key(news["title"])
+#         news_dict[key] = news
 
-    news_picker_agent = Agent(
-        prompt_persona=f"""You are an expert news analyst. You have been given a list of news article headlines about a company. Your task is to identify and return the top 10 headlines that are the most important and impactful.
-Consider the following criteria when evaluating each headline:
-- Uniqueness: Avoid selecting multiple headlines that discuss the same event or topic. Each of the top 10 headlines should cover a distinct and different event or aspect.
-- Relevance: How directly the headline pertains to significant events or developments related to the company (e.g., major financial moves, significant product launches, legal issues, executive changes, etc.).
-- Impact: The potential effect of the news on the company's operations, stock price, public perception, or industry standing.
+#     news_picker_agent = Agent(
+#         prompt_persona=f"""You are an expert news analyst. You have been given a list of news article headlines about a company. Your task is to identify and return the top 10 headlines that are the most important and impactful.
+# Consider the following criteria when evaluating each headline:
+# - Uniqueness: Avoid selecting multiple headlines that discuss the same event or topic. Each of the top 10 headlines should cover a distinct and different event or aspect.
+# - Relevance: How directly the headline pertains to significant events or developments related to the company (e.g., major financial moves, significant product launches, legal issues, executive changes, etc.).
+# - Impact: The potential effect of the news on the company's operations, stock price, public perception, or industry standing.
 
-OUTPUT FORMAT - A list containing the headlines - [Headline 1, Headline 2, ...] - Output the list of articles in a Python-friendly format, with each item in the list properly enclosed in quotes and the entire list enclosed in square brackets.Do not include any additional tags or language indicators.
+# OUTPUT FORMAT - A list containing the headlines - [Headline 1, Headline 2, ...] - Output the list of articles in a Python-friendly format, with each item in the list properly enclosed in quotes and the entire list enclosed in square brackets.Do not include any additional tags or language indicators.
 
-Please return the top 10 headlines. If the input has less than 10 headlines, return all. Make sure all the headlines are returned in the same format as input.
-""",
-        role="News picker",
-    )
+# Please return the top 10 headlines. If the input has less than 10 headlines, return all. Make sure all the headlines are returned in the same format as input.
+# """,
+#         role="News picker",
+#     )
 
-    news_picker_task = Task(
-        name="Filter News Task",
-        agent=news_picker_agent,
-        output_type=OutputType.TEXT,
-        input_type=InputType.TEXT,
-        model=open_ai_model_text,
-        instructions="Filter the news results and give top 10 headlines in a list. Return ONLY the list",
-        log_output=True,
-        enhance_prompt=False,
-        default_input=news_article_list,
-    ).execute()
+#     news_picker_task = Task(
+#         name="Filter News Task",
+#         agent=news_picker_agent,
+#         output_type=OutputType.TEXT,
+#         input_type=InputType.TEXT,
+#         model=open_ai_model_text,
+#         instructions="Filter the news results and give top 10 headlines in a list. Return ONLY the list",
+#         log_output=True,
+#         enhance_prompt=False,
+#         default_input=news_article_list,
+#     ).execute()
 
-    if news_picker_task:
-        headlines_list = ast.literal_eval(news_picker_task)
-        cleaned_headlines = [utils.format_key(headline.strip()) for headline in headlines_list]
+#     if news_picker_task:
+#         headlines_list = ast.literal_eval(news_picker_task)
+#         cleaned_headlines = [utils.format_key(headline.strip()) for headline in headlines_list]
 
-        for title in cleaned_headlines:
-            url = news_dict[title]["url"]
-            date = news_dict[title]["published date"]
-            try:
-                full_article = google_news.get_full_article(url)
-                article_title = full_article.title
-                article_text = full_article.text
-                scraped_data += (
-                    "Title: "
-                    + article_title
-                    + "\nPublished Date: "
-                    + date
-                    + "\n"
-                    + article_text
-                    + "\n"
-                )
-            except:
-                print("Error")
+#         for title in cleaned_headlines:
+#             url = news_dict[title]["url"]
+#             date = news_dict[title]["published date"]
+#             try:
+#                 full_article = google_news.get_full_article(url)
+#                 article_title = full_article.title
+#                 article_text = full_article.text
+#                 scraped_data += (
+#                     "Title: "
+#                     + article_title
+#                     + "\nPublished Date: "
+#                     + date
+#                     + "\n"
+#                     + article_text
+#                     + "\n"
+#                 )
+#             except:
+#                 print("Error")
 
-    return scraped_data
+#     return scraped_data
 
 
 def specific_research_analysis(company_name, website_name, specific_research_area):
@@ -356,93 +356,3 @@ def save_metrics_data_file(metrics_data, competitor_name, metric_keys):
                 my_file.write(key + ": " + str(value) + "\n")
 
 
-# STREAMLIT COMPONENTS
-# try:
-#     document_id = st.session_state["document_id"]
-# except:
-#     st.error("Please complete Initiate Research step!")
-#     st.stop()
-
-# st.header("View your research data")
-
-# result1 = competitors_list_collection.find_one({"_id": document_id})
-# competitors_list = result1["generated_competitors_list"]
-
-# result2 = base_research_collection.find(
-#     {"competitors_list_document_id": document_id},
-#     {"raw_data": 1, "competitor_name": 1},
-# )
-
-# object_id_column = []
-# competitor_name_column = []
-# raw_data_column = []
-# website_column = []
-
-# for item in result2:
-#     object_id_column.append(item["_id"])
-#     competitor_name_column.append(item["competitor_name"])
-#     raw_data_column.append(item["raw_data"])
-#     website_column.append(competitors_list[item["competitor_name"]])
-
-# dataframe_dict = {
-#     "id": object_id_column,
-#     "competitor_name": competitor_name_column,
-#     "website": website_column,
-#     "raw_data": raw_data_column,
-# }
-# df = pd.DataFrame(dataframe_dict)
-# df.index = df.index + 1
-# st.dataframe(df, column_config={"id": None})
-
-# st.write("## Generate report for")
-# generate_report_list = st.multiselect(
-#     "Generate Report for", options=competitor_name_column, label_visibility="collapsed"
-# )
-
-# fields = [
-#     "Website URL",
-#     "Sector",
-#     "Industry",
-#     "Location",
-#     "Number of Employees",
-#     "Founding Year",
-#     "Company Type",
-#     "Market Cap",
-#     "Annual Revenue",
-#     "LinkedIn URL",
-#     "Tagline",
-#     "Stock Ticker",
-# ]
-# st.write("## Select required metrics")
-# metrics_list_values = [field for field in fields if st.checkbox(field, value=True)]
-
-# report_button = st.button("Generate report")
-# if report_button:
-#     if metrics_list_values:
-#         metrics_dict = {}
-#         for name in metrics_list_values:
-#             key_value = utils.convert_field_name_advanced(name.strip())
-#             metrics_dict[key_value] = name.strip()
-
-#         st.session_state.metrics_dict = metrics_dict
-#     else:
-#         st.error("No fields selected.")
-#     filtered_dataframe = df[df["competitor_name"].isin(generate_report_list)]
-#     filtered_dataframe.apply(
-#         process_data,
-#         axis=1,
-#         args=(document_id,),
-#     )
-
-#     st.write(
-#         """
-#         # Report generated! :sparkles:
-#         ### Go to :red[Access Reports] Page"""
-#     )
-#     st.page_link("pages/2_Access_Reports.py", label="Access Reports", icon="📁")
-#     st.write("### To chat with the data, go to :red[Chat With Knowledge Base] page")
-#     st.page_link(
-#         "pages/3_Chat_With_Knowledge_Base.py",
-#         label="Chat With Knowledge Base",
-#         icon="🤖",
-#     )
