@@ -7,35 +7,43 @@
 {% block content %}
 <div class="container-lg report-button">
     <button type="submit" name="download_pdf" class="btn btn-success">Download PDF</button>
-    <button type="submit" name="download_excel" class="btn btn-success">Download Excel</button>
 
 </div>
+<div class="report-data">
+    <h3>Company Report</h3>
+    <div class="report-data-child">
+        <p>{{file_data|safe}}</p>
+    </div>
+    
+</div>
+
+<hr>
 
 <div class="company-data">
     <h3>SWOT Analysis</h3>
     <div class="company-data-child">
         <div class="company-data-child-first">
             <div class="card strength">
-                {% if strength %}
-                    {{strength}}
+                {% if html_strength %}
+                    {{html_strength|safe}}
                 {% endif %}
             </div>
             <div class="card weakness">
-                {% if weakness %}
-                    {{weakness}}
+                {% if html_weakness %}
+                    {{html_weakness|safe}}
                 {% endif %}
             </div>
 
         </div>
         <div class="company-data-child-second">
             <div class="card opportunity">
-                {% if opportunity %}
-                    {{opportunity}}
+                {% if html_opportunity %}
+                    {{html_opportunity|safe}}
                 {% endif %}
             </div>
             <div class="card threat">
-                {% if threat %}
-                    {{threat}}
+                {% if html_threats %}
+                    {{html_threats|safe}}
                 {% endif %}
             </div>
         </div>

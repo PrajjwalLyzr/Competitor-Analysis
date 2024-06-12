@@ -1,35 +1,24 @@
 import ast
 import datetime
 import os
+import re
+
+import json
 from utils import utils
 
 import newspaper
 import streamlit as st
 from dotenv import load_dotenv
 from gnews import GNews
-from lyzr_automata import Agent, LinearSyncPipeline, Task
+from lyzr_automata import Agent, Task
 from lyzr_automata.ai_models.openai import OpenAIModel
+from lyzr_automata.memory.open_ai import OpenAIMemory
 from lyzr_automata.ai_models.perplexity import PerplexityModel
 from lyzr_automata.tasks.task_literals import InputType, OutputType
-
-# from database import base_research_collection, competitors_list_collection
-
-# st.set_page_config(layout="wide", page_title="Alan - The Business Analyst")
-
-# st.sidebar.title("Try Alan’s Capabilities")
-# st.sidebar.markdown(
-#     "<small>Alan can do a thorough research about your customer or competitor and generate a detailed report, on a daily or weekly basis. Alan looks up information in the internet (powered by Perplexity), news (powered by Google news) and also scraps their website.</small>",
-#     unsafe_allow_html=True,
-# )
-# st.sidebar.markdown(
-#     "Learn more about [Alan](https://www.lyzr.ai/book-demo/)", unsafe_allow_html=True
-# )
 
 load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-# PASSWORD = os.getenv("PASSWORD")
-# EMAIL = os.getenv("EMAIL")
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 
 FOLDER_NAME = "raw_data_files"
@@ -54,9 +43,6 @@ perplexity_model_text = PerplexityModel(
         "model": "llama-3-sonar-small-32k-online",
     },
 )
-
-
-
 
 
 
@@ -118,27 +104,28 @@ Please return the top 10 headlines. If the input has less than 10 headlines, ret
         default_input=news_article_list,
     ).execute()
 
-    headlines_list = ast.literal_eval(news_picker_task)
-    cleaned_headlines = [utils.format_key(headline.strip()) for headline in headlines_list]
+    if news_picker_task:
+        headlines_list = ast.literal_eval(news_picker_task)
+        cleaned_headlines = [utils.format_key(headline.strip()) for headline in headlines_list]
 
-    for title in cleaned_headlines:
-        url = news_dict[title]["url"]
-        date = news_dict[title]["published date"]
-        try:
-            full_article = google_news.get_full_article(url)
-            article_title = full_article.title
-            article_text = full_article.text
-            scraped_data += (
-                "Title: "
-                + article_title
-                + "\nPublished Date: "
-                + date
-                + "\n"
-                + article_text
-                + "\n"
-            )
-        except:
-            print("Error")
+        for title in cleaned_headlines:
+            url = news_dict[title]["url"]
+            date = news_dict[title]["published date"]
+            try:
+                full_article = google_news.get_full_article(url)
+                article_title = full_article.title
+                article_text = full_article.text
+                scraped_data += (
+                    "Title: "
+                    + article_title
+                    + "\nPublished Date: "
+                    + date
+                    + "\n"
+                    + article_text
+                    + "\n"
+                )
+            except:
+                print("Error")
 
     return scraped_data
 
@@ -155,10 +142,10 @@ def specific_research_analysis(company_name, website_name, specific_research_are
 
     return search_task["choices"][0]["message"]["content"]
 
-def swot_analysis(company_name, website_name=None, metrics=None):
+def swot_analysis(company_name, website_name=None):
     Analyst = Agent(
         prompt_persona=f"""
-                        You are an analyst who is expert in SWOT analysis and your task is to conducting a comprehensive SWOT analysis for a company named {[company_name]}, your analysis should consider various internal and external factors. 
+                        You are an analyst who is expert in SWOT analysis and your task is to conducting a comprehensive SWOT analysis for a company named [{company_name}] and its website [{website_name}] your analysis should consider various internal and external factors. 
                         The SWOT analysis will help the company understand its current strategic position and identify areas for improvement and growth.
                         """,
         role="Analyst"
@@ -170,7 +157,7 @@ def swot_analysis(company_name, website_name=None, metrics=None):
         output_type=OutputType.TEXT,
         input_type=InputType.TEXT,
         model=perplexity_model_text,
-        instructions=f"List the strengths of {company_name} based on its recent financial performance, market position, and internal capabilities. What are the unique advantages of f{company_name} compared to its competitors? [!IMPORTANT] just provide the bullet points nothing else",
+        instructions=f"Identify the strengths of {company_name} based on its recent financial performance, market position, and internal capabilities. What are the unique advantages of f{company_name} compared to its competitors? [Important] just provide 3 Bullet points with 1 main heading",
         log_output=True,
     ).execute()
 
@@ -180,7 +167,7 @@ def swot_analysis(company_name, website_name=None, metrics=None):
         output_type=OutputType.TEXT,
         input_type=InputType.TEXT,
         model=perplexity_model_text,
-        instructions=f"Identify the weaknesses of {company_name} considering its financial performance, operational inefficiencies, and market challenges. What internal challenges does {company_name} face that could hinder its performance? [!IMPORTANT] just provide the bullet points nothing else",
+        instructions=f"Identify the weaknesses of {company_name} considering its financial performance, operational inefficiencies, and market challenges. What internal challenges does {company_name} face that could hinder its performance? [Important] just provide 3 Bullet points with 1 main heading",
         log_output=True,
     ).execute()
 
@@ -190,7 +177,7 @@ def swot_analysis(company_name, website_name=None, metrics=None):
         output_type=OutputType.TEXT,
         input_type=InputType.TEXT,
         model=perplexity_model_text,
-        instructions=f"What are the growth opportunities for {company_name} in the current market landscape? Identify potential market trends or technologies that {company_name} could leverage. [!IMPORTANT] just provide the bullet points nothing else",
+        instructions=f"What are the growth opportunities for {company_name} in the current market landscape? Identify potential market trends or technologies that {company_name} could leverage. [Important] just provide 3 Bullet points with 1 main heading",
         log_output=True,
     ).execute()
 
@@ -200,161 +187,256 @@ def swot_analysis(company_name, website_name=None, metrics=None):
         output_type=OutputType.TEXT,
         input_type=InputType.TEXT,
         model=perplexity_model_text,
-        instructions=f"List the potential threats to {company_name} from external market factors, competition, and regulatory changes. What are the major risks that could negatively impact {company_name}'s business? [!IMPORTANT] just provide the bullet points nothing else",
+        instructions=f"Identify the potential threats to {company_name} from external market factors, competition, and regulatory changes. What are the major risks that could negatively impact {company_name}'s business? [Important] just provide 3 Bullet points with 1 main heading",
         log_output=True,
     ).execute()
     
 
-    return Strength["choices"][0]["message"]["content"], Weakness["choices"][0]["message"]["content"], Opportunities["choices"][0]["message"]["content"]
+    return Strength["choices"][0]["message"]["content"], Weakness["choices"][0]["message"]["content"], Opportunities["choices"][0]["message"]["content"], Threats["choices"][0]["message"]["content"]
 
 
-# def save_raw_data_database(
-#     competitor_name,
-#     competitors_list_document_id,
-#     search_results="",
-#     scrape_results="",
-#     specific_research_results="",
-# ):
-#     specific_research_raw_data = ""
-#     if specific_research_results:
-#         specific_research_raw_data = (
-#             f"Specific Research:\n{specific_research_results}\n"
-#         )
-#     raw_data = (
-#         f"{specific_research_raw_data}General Research:\n{search_results}\nRecent Articles about {competitor_name}:\n"
-#         + scrape_results
-#     )
-#     base_research_document = {
-#         "competitor_name": competitor_name,
-#         "competitors_list_document_id": competitors_list_document_id,
-#         "raw_data": raw_data,
-#         "created_at": datetime.datetime.now(datetime.UTC),
-#     }
-
-#     base_research_collection.insert_one(base_research_document)
+def save_raw_data_file(
+    competitor_name, search_results="", scrape_results="", specific_research_results=""
+):
+    specific_research_raw_data = ""
+    if specific_research_results:
+        specific_research_raw_data = (
+            f"Specific Research:\n{specific_research_results}\n"
+        )
+    raw_data = (
+        f"{specific_research_raw_data}General Research:\n{search_results}\nRecent Articles about {competitor_name}:\n"
+        + scrape_results
+    )
+    FILE_NAME = os.path.join(FOLDER_NAME, competitor_name + ".txt")
+    with open(FILE_NAME, "w") as my_file:
+        my_file.write(raw_data)
 
 
-# def save_raw_data_file(
-#     competitor_name, search_results="", scrape_results="", specific_research_results=""
-# ):
-#     specific_research_raw_data = ""
-#     if specific_research_results:
-#         specific_research_raw_data = (
-#             f"Specific Research:\n{specific_research_results}\n"
-#         )
-#     raw_data = (
-#         f"{specific_research_raw_data}General Research:\n{search_results}\nRecent Articles about {competitor_name}:\n"
-#         + scrape_results
-#     )
-#     FILE_NAME = os.path.join(FOLDER_NAME, competitor_name + ".txt")
-#     with open(FILE_NAME, "w") as my_file:
-#         my_file.write(raw_data)
+def analyze_competitors(companyName, websiteName, specific_research_area=""):
+    utils.create_folder(folder_name=FOLDER_NAME, report_folder_name=REPORT_FOLDER_NAME, agent_file=AGENTS_FILE)
 
-
-# def save_competitors_list_databse(company_name_input, competitors):
-#     competitors_list_document = {
-#         "company_name": company_name_input,
-#         "generated_competitors_list": competitors,
-#         "created_at": datetime.datetime.now(datetime.UTC),
-#     }
-#     new_competitor_list = competitors_list_collection.insert_one(
-#         competitors_list_document
-#     )
-#     document_id = st.session_state["document_id"] = new_competitor_list.inserted_id
-
-#     return document_id
-
-
-# def analyze_competitors(specific_research_area=""):
-#     company_name_input = st.session_state.company_name
-#     competitors = st.session_state.competitors
-
-#     document_id = save_competitors_list_databse(company_name_input, competitors)
-
-#     for to_analyze_competitor, to_analyze_website in competitors.items():
-#         specific_research_results = ""
-#         if specific_research_area != "":
-#             specific_research_results = specific_research_analysis(
-#                 to_analyze_competitor, to_analyze_website, specific_research_area
-#             )
-#         search_results = search_competitor_analysis(
-#             to_analyze_competitor, to_analyze_website
-#         )
-#         scrape_results = scrape_competitor_analysis(
-#             to_analyze_competitor, to_analyze_website
-#         )
-#         save_raw_data_database(
-#             to_analyze_competitor,
-#             document_id,
-#             search_results,
-#             scrape_results,
-#             specific_research_results,
-#         )
-#         save_raw_data_file(
-#             to_analyze_competitor,
-#             search_results,
-#             scrape_results,
-#             specific_research_results,
-#         )
+    specific_research_results = ""
+    if specific_research_area != "":
+        specific_research_results = specific_research_analysis(
+            company_name=companyName, website_name=websiteName, specific_research_area=specific_research_area
+        )
+    search_results = search_competitor_analysis(
+        company_name=companyName, website_name=websiteName
+    )
+    scrape_results = scrape_competitor_analysis(
+        company_name=companyName, website_name=websiteName
+    )
+    
+    save_raw_data_file(
+        companyName,
+        search_results,
+        scrape_results,
+        specific_research_results,
+    )
 
 
 # STREAMLIT COMPONENTS
 
+def process_data(companyName, websiteName):
+    metrics_list_keys = ["Website URL", "Sector", "Industry", "Location", "Number of Employees", "Founding Year", "Company Type", "Market Cap", "Annual Revenue", "LinkedIn URL", "Tagline", "Stock Ticker",]
+    competitor_name = companyName
+    website = websiteName
+    # email_report = write_email_report(competitor_name)
+    metrics_data_raw = get_metrics_data(
+        competitor_name, website, metrics_list_keys
+    )
+    metrics_data = utils.parse_json_output(metrics_data_raw)
+    # metrics_data = {
+    #     "website": "http://www.microsoft.com",
+    #     "sector": "Technology",
+    #     "industry": "Software and Video Games",
+    #     "location": "Redmond, Washington, USA",
+    #     "number_of_employees": 221000,
+    #     "founding_year": 1975,
+    #     "company_type": "Public",
+    #     "market_cap": None,
+    #     "annual_revenue": "US$110.36 billion (2018)",
+    #     "linkedin_url": None,
+    #     "tagline": "Empower every person and every organization on the planet to achieve more.",
+    #     "stock_ticker": "MSFT",
+    #     "competitor_name": "Microsoft",
+    # }
+    
+    save_metrics_data_file(metrics_data,competitor_name, metrics_list_keys)
+    return None
 
-# def display_competitors():
-#     if st.session_state.competitors:
-#         st.write("# List of competitors:")
-#         for name, website in st.session_state.competitors.items():
-#             st.write(name + " - " + website)
+
+def get_metrics_data(competitor_name, website, metrics_list_keys):
+    metrics_parsing_agent = Agent(
+        prompt_persona="You are intelligent agent that can process raw text data into structured JSON format. Please provide the information in plain JSON format without any additional characters or markdown. Return ONLY the JSON object. If a matching value for a key is not found, let the value be None.",
+        role="Metrics Parser",
+    )
+
+    search_task = Task(
+        name="Metrics data search",
+        output_type=OutputType.TEXT,
+        input_type=InputType.TEXT,
+        model=perplexity_model_text,
+        instructions=f"I need recent and updated information about the company {competitor_name} - {website}. Please search and provide comprehensive insights based on the following details required: {metrics_list_keys}.",
+        log_output=True,
+    ).execute()
+
+    metrics_parsing_task = Task(
+        name="Metrics Parsing Task",
+        agent=metrics_parsing_agent,
+        output_type=OutputType.TEXT,
+        input_type=InputType.TEXT,
+        model=open_ai_model_text,
+        instructions=f"Use the company information provided and return the information as a JSON object with keys for : {metrics_list_keys}",
+        log_output=True,
+        enhance_prompt=False,
+        previous_output=search_task,
+        input_tasks=[search_task],
+    ).execute()
+
+    return metrics_parsing_task
 
 
-# if "competitors" not in st.session_state:
-#     st.session_state.competitors = {}
+def write_email_report(company_name):
+    memory_file_path = f"raw_data_files/{company_name}.txt"
+    email_writer_memory = OpenAIMemory(file_path=memory_file_path)
 
-# st.image("Alan.png")
+    email_writer_agent = Agent(
+        prompt_persona="""You are intelligent agent that can generate a comprehensive summary using the latest information provided about a company. Ensure the summary is organized, succinct, and tailored to the specified audience. Use clear section headings and maintain the requested tone throughout the document.
+        Target Audience - Competitor of the company
+        Tone and Style - Formal and informative
+        Summary Format - 
+        1. Company Name: [Name of the Company]
+        2. Key Events:
+        Article 1: [Title]
+        [Published Date]
+        [2 bullet points to summarize article 1]
+        Article 2: [Title]
+        [Published Date]
+        [2 bullet points to summarize article 2]
+        ...
+        3. General Research: [Summary of General Research]
+        IF Specific Research section is present,
+            4. Specific Research: [Summary of Specific Reseach]
+        """,
+        role="Competitor Analyst",
+        memory=email_writer_memory,
+    )
 
-# company_name = st.text_input("Enter your company name")
+    content_writer_task = Task(
+        name="Competitor Analyst Task",
+        agent=email_writer_agent,
+        output_type=OutputType.TEXT,
+        input_type=InputType.TEXT,
+        model=open_ai_model_text,
+        instructions=f"Use the articles provided about the company {company_name} and write a summary for each and every article. Each article starts with 'Title:', followed by the content. If Specific Research or General Research is present, write a summary about them. If Specific Research or General Research is NOT present, do not generate anything. Send the response in text without any markdown. Use bullets for points and beautify it be as creative as you want",
+        log_output=True,
+        enhance_prompt=False,
+    ).execute()
 
-# st.write("## Add a competitor/customer")
-# col1, col2 = st.columns(2)
-# with col1:
-#     new_company_name = st.text_input("Enter company name")
+    return content_writer_task
 
-# with col2:
-#     new_company_website = st.text_input("Enter company website")
 
-# if st.button("Add Competitor"):
-#     if new_company_name and new_company_website:
-#         st.session_state.competitors[new_company_name] = new_company_website
+
+def save_metrics_data_file(metrics_data, competitor_name, metric_keys):
+    FILE_NAME = os.path.join(FOLDER_NAME, competitor_name + ".txt")
+    metrics_dict = metric_keys
+    with open(FILE_NAME, "a") as my_file:
+        my_file.write(f"\n\nMetrics about the company {competitor_name}:\n")
+        for key, value in metrics_data.items():
+            if key in list(metrics_dict):
+                my_file.write(key + ": " + str(value) + "\n")
+            else:
+                my_file.write(key + ": " + str(value) + "\n")
+
+
+# STREAMLIT COMPONENTS
+# try:
+#     document_id = st.session_state["document_id"]
+# except:
+#     st.error("Please complete Initiate Research step!")
+#     st.stop()
+
+# st.header("View your research data")
+
+# result1 = competitors_list_collection.find_one({"_id": document_id})
+# competitors_list = result1["generated_competitors_list"]
+
+# result2 = base_research_collection.find(
+#     {"competitors_list_document_id": document_id},
+#     {"raw_data": 1, "competitor_name": 1},
+# )
+
+# object_id_column = []
+# competitor_name_column = []
+# raw_data_column = []
+# website_column = []
+
+# for item in result2:
+#     object_id_column.append(item["_id"])
+#     competitor_name_column.append(item["competitor_name"])
+#     raw_data_column.append(item["raw_data"])
+#     website_column.append(competitors_list[item["competitor_name"]])
+
+# dataframe_dict = {
+#     "id": object_id_column,
+#     "competitor_name": competitor_name_column,
+#     "website": website_column,
+#     "raw_data": raw_data_column,
+# }
+# df = pd.DataFrame(dataframe_dict)
+# df.index = df.index + 1
+# st.dataframe(df, column_config={"id": None})
+
+# st.write("## Generate report for")
+# generate_report_list = st.multiselect(
+#     "Generate Report for", options=competitor_name_column, label_visibility="collapsed"
+# )
+
+# fields = [
+#     "Website URL",
+#     "Sector",
+#     "Industry",
+#     "Location",
+#     "Number of Employees",
+#     "Founding Year",
+#     "Company Type",
+#     "Market Cap",
+#     "Annual Revenue",
+#     "LinkedIn URL",
+#     "Tagline",
+#     "Stock Ticker",
+# ]
+# st.write("## Select required metrics")
+# metrics_list_values = [field for field in fields if st.checkbox(field, value=True)]
+
+# report_button = st.button("Generate report")
+# if report_button:
+#     if metrics_list_values:
+#         metrics_dict = {}
+#         for name in metrics_list_values:
+#             key_value = utils.convert_field_name_advanced(name.strip())
+#             metrics_dict[key_value] = name.strip()
+
+#         st.session_state.metrics_dict = metrics_dict
 #     else:
-#         st.error("Missing fields")
+#         st.error("No fields selected.")
+#     filtered_dataframe = df[df["competitor_name"].isin(generate_report_list)]
+#     filtered_dataframe.apply(
+#         process_data,
+#         axis=1,
+#         args=(document_id,),
+#     )
 
-# st.write("## Delete a competitor")
-# competitors_options = [key for key in st.session_state.competitors]
-# options = st.multiselect(
-#     "Pick competitors to delete",
-#     competitors_options,
-# )
-# if st.button("Delete Competitor"):
-#     for key in options:
-#         del st.session_state.competitors[key]
-#         st.success("Deleted!")
-
-# specific_research_area = st.text_input(
-#     "Specific area of focus for the research *(OPTIONAL)*",
-#     value="",
-#     placeholder="Eg. Research about their growth strategy and customer aqcuisation channel",
-# )
-
-# display_competitors()
-
-# if st.button("Initiate Analysis", type="primary"):
-#     st.session_state.company_name = company_name
-#     create_folder()
-#     analyze_competitors(specific_research_area.strip())
 #     st.write(
 #         """
-#         # Analysis complete! :star:
-#         ### Go to :red[Generate Report] Page"""
+#         # Report generated! :sparkles:
+#         ### Go to :red[Access Reports] Page"""
 #     )
-#     st.page_link("pages/1_Generate_Report.py", label="Generate Report", icon="📊")
+#     st.page_link("pages/2_Access_Reports.py", label="Access Reports", icon="📁")
+#     st.write("### To chat with the data, go to :red[Chat With Knowledge Base] page")
+#     st.page_link(
+#         "pages/3_Chat_With_Knowledge_Base.py",
+#         label="Chat With Knowledge Base",
+#         icon="🤖",
+#     )
