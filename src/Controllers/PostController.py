@@ -1,9 +1,9 @@
 from flask import request, render_template, send_file
 import tempfile
 from reportlab.pdfgen import canvas
-from Controllers import LyzrInitiallizer
+from src.Controllers import LyzrInitiallizer
 import markdown
-from utils import utils
+from src.utils import utils
 
 
 def analysis():

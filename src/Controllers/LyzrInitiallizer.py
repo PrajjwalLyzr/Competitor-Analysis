@@ -2,12 +2,9 @@ import ast
 import datetime
 import os
 import re
-
 import json
-from utils import utils
-
+from src.utils import utils
 import newspaper
-import streamlit as st
 from dotenv import load_dotenv
 from gnews import GNews
 from lyzr_automata import Agent, Task
