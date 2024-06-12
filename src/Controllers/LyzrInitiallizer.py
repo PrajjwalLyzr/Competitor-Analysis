@@ -157,7 +157,7 @@ def swot_analysis(company_name, website_name=None):
         output_type=OutputType.TEXT,
         input_type=InputType.TEXT,
         model=perplexity_model_text,
-        instructions=f"What are the key strengths of {company_name}? Please provide one heading and exactly three bullet points highlighting our major strengths.",
+        instructions=f"What are the key strengths of company:[{company_name}]? Please provide one heading and exactly three bullet points highlighting our major strengths.",
         log_output=True,
     ).execute()
 
@@ -167,7 +167,7 @@ def swot_analysis(company_name, website_name=None):
         output_type=OutputType.TEXT,
         input_type=InputType.TEXT,
         model=perplexity_model_text,
-        instructions=f"What are the primary weaknesses of {company_name}? Please provide one heading and exactly three bullet points detailing our main weaknesses.",
+        instructions=f"What are the primary weaknesses of company:[{company_name}]? Please provide one heading and exactly three bullet points detailing our main weaknesses.",
         log_output=True,
     ).execute()
 
@@ -177,7 +177,7 @@ def swot_analysis(company_name, website_name=None):
         output_type=OutputType.TEXT,
         input_type=InputType.TEXT,
         model=perplexity_model_text,
-        instructions=f"What are the opportunities available to {company_name} in the market? Please provide one heading and exactly three bullet points describing the main opportunities we can capitalize on.",
+        instructions=f"What are the opportunities available to company:[{company_name}] in the market? Please provide one heading and exactly three bullet points describing the main opportunities we can capitalize on.",
         log_output=True,
     ).execute()
 
@@ -187,7 +187,7 @@ def swot_analysis(company_name, website_name=None):
         output_type=OutputType.TEXT,
         input_type=InputType.TEXT,
         model=perplexity_model_text,
-        instructions=f"What are the significant threats facing {company_name}? Please provide one heading and exactly three bullet points outlining the main threats we need to be aware of.",
+        instructions=f"What are the significant threats facing company[{company_name}]? Please provide one heading and exactly three bullet points outlining the main threats we need to be aware of.",
         log_output=True,
     ).execute()
     
@@ -208,7 +208,10 @@ def save_raw_data_file(
         + scrape_results
     )
     FILE_NAME = os.path.join(FOLDER_NAME, competitor_name + ".txt")
+    # sentences = re.split(r"\.(?=\s)", raw_data)
     with open(FILE_NAME, "w") as my_file:
+        # for sentence in sentences:
+        #     my_file.write(sentence + "\n")
         my_file.write(raw_data)
 
 
@@ -223,15 +226,21 @@ def analyze_competitors(companyName, websiteName, specific_research_area=""):
     search_results = search_competitor_analysis(
         company_name=companyName, website_name=websiteName
     )
-    scrape_results = scrape_competitor_analysis(
-        company_name=companyName, website_name=websiteName
-    )
+    # scrape_results = scrape_competitor_analysis(
+    #     company_name=companyName, website_name=websiteName
+    # )
     
+    # save_raw_data_file(
+    #     companyName,
+    #     search_results,
+    #     scrape_results,
+    #     specific_research_results,
+    # )
+
     save_raw_data_file(
-        companyName,
-        search_results,
-        scrape_results,
-        specific_research_results,
+        competitor_name=companyName,
+        search_results=search_results,
+        specific_research_results=specific_research_results,
     )
 
 
