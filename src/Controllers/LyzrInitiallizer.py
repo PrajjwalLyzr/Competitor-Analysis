@@ -157,7 +157,7 @@ def swot_analysis(company_name, website_name=None):
         output_type=OutputType.TEXT,
         input_type=InputType.TEXT,
         model=perplexity_model_text,
-        instructions=f"Identify the strengths of {company_name} based on its recent financial performance, market position, and internal capabilities. What are the unique advantages of f{company_name} compared to its competitors? [Important] just provide 3 Bullet points with 1 main heading",
+        instructions=f"What are the key strengths of {company_name}? Please provide one heading and exactly three bullet points highlighting our major strengths.",
         log_output=True,
     ).execute()
 
@@ -167,7 +167,7 @@ def swot_analysis(company_name, website_name=None):
         output_type=OutputType.TEXT,
         input_type=InputType.TEXT,
         model=perplexity_model_text,
-        instructions=f"Identify the weaknesses of {company_name} considering its financial performance, operational inefficiencies, and market challenges. What internal challenges does {company_name} face that could hinder its performance? [Important] just provide 3 Bullet points with 1 main heading",
+        instructions=f"What are the primary weaknesses of {company_name}? Please provide one heading and exactly three bullet points detailing our main weaknesses.",
         log_output=True,
     ).execute()
 
@@ -177,7 +177,7 @@ def swot_analysis(company_name, website_name=None):
         output_type=OutputType.TEXT,
         input_type=InputType.TEXT,
         model=perplexity_model_text,
-        instructions=f"What are the growth opportunities for {company_name} in the current market landscape? Identify potential market trends or technologies that {company_name} could leverage. [Important] just provide 3 Bullet points with 1 main heading",
+        instructions=f"What are the opportunities available to {company_name} in the market? Please provide one heading and exactly three bullet points describing the main opportunities we can capitalize on.",
         log_output=True,
     ).execute()
 
@@ -187,7 +187,7 @@ def swot_analysis(company_name, website_name=None):
         output_type=OutputType.TEXT,
         input_type=InputType.TEXT,
         model=perplexity_model_text,
-        instructions=f"Identify the potential threats to {company_name} from external market factors, competition, and regulatory changes. What are the major risks that could negatively impact {company_name}'s business? [Important] just provide 3 Bullet points with 1 main heading",
+        instructions=f"What are the significant threats facing {company_name}? Please provide one heading and exactly three bullet points outlining the main threats we need to be aware of.",
         log_output=True,
     ).execute()
     
