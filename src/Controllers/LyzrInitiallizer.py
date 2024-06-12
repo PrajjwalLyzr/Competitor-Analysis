@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from gnews import GNews
 from lyzr_automata import Agent, Task
 from lyzr_automata.ai_models.openai import OpenAIModel
-from lyzr_automata.memory.open_ai import OpenAIMemory
+# from lyzr_automata.memory.open_ai import OpenAIMemory
 from lyzr_automata.ai_models.perplexity import PerplexityModel
 from lyzr_automata.tasks.task_literals import InputType, OutputType
 
@@ -303,44 +303,44 @@ def get_metrics_data(competitor_name, website, metrics_list_keys):
     return metrics_parsing_task
 
 
-def write_email_report(company_name):
-    memory_file_path = f"raw_data_files/{company_name}.txt"
-    email_writer_memory = OpenAIMemory(file_path=memory_file_path)
+# def write_email_report(company_name):
+#     memory_file_path = f"raw_data_files/{company_name}.txt"
+#     email_writer_memory = OpenAIMemory(file_path=memory_file_path)
 
-    email_writer_agent = Agent(
-        prompt_persona="""You are intelligent agent that can generate a comprehensive summary using the latest information provided about a company. Ensure the summary is organized, succinct, and tailored to the specified audience. Use clear section headings and maintain the requested tone throughout the document.
-        Target Audience - Competitor of the company
-        Tone and Style - Formal and informative
-        Summary Format - 
-        1. Company Name: [Name of the Company]
-        2. Key Events:
-        Article 1: [Title]
-        [Published Date]
-        [2 bullet points to summarize article 1]
-        Article 2: [Title]
-        [Published Date]
-        [2 bullet points to summarize article 2]
-        ...
-        3. General Research: [Summary of General Research]
-        IF Specific Research section is present,
-            4. Specific Research: [Summary of Specific Reseach]
-        """,
-        role="Competitor Analyst",
-        memory=email_writer_memory,
-    )
+#     email_writer_agent = Agent(
+#         prompt_persona="""You are intelligent agent that can generate a comprehensive summary using the latest information provided about a company. Ensure the summary is organized, succinct, and tailored to the specified audience. Use clear section headings and maintain the requested tone throughout the document.
+#         Target Audience - Competitor of the company
+#         Tone and Style - Formal and informative
+#         Summary Format - 
+#         1. Company Name: [Name of the Company]
+#         2. Key Events:
+#         Article 1: [Title]
+#         [Published Date]
+#         [2 bullet points to summarize article 1]
+#         Article 2: [Title]
+#         [Published Date]
+#         [2 bullet points to summarize article 2]
+#         ...
+#         3. General Research: [Summary of General Research]
+#         IF Specific Research section is present,
+#             4. Specific Research: [Summary of Specific Reseach]
+#         """,
+#         role="Competitor Analyst",
+#         memory=email_writer_memory,
+#     )
 
-    content_writer_task = Task(
-        name="Competitor Analyst Task",
-        agent=email_writer_agent,
-        output_type=OutputType.TEXT,
-        input_type=InputType.TEXT,
-        model=open_ai_model_text,
-        instructions=f"Use the articles provided about the company {company_name} and write a summary for each and every article. Each article starts with 'Title:', followed by the content. If Specific Research or General Research is present, write a summary about them. If Specific Research or General Research is NOT present, do not generate anything. Send the response in text without any markdown. Use bullets for points and beautify it be as creative as you want",
-        log_output=True,
-        enhance_prompt=False,
-    ).execute()
+#     content_writer_task = Task(
+#         name="Competitor Analyst Task",
+#         agent=email_writer_agent,
+#         output_type=OutputType.TEXT,
+#         input_type=InputType.TEXT,
+#         model=open_ai_model_text,
+#         instructions=f"Use the articles provided about the company {company_name} and write a summary for each and every article. Each article starts with 'Title:', followed by the content. If Specific Research or General Research is present, write a summary about them. If Specific Research or General Research is NOT present, do not generate anything. Send the response in text without any markdown. Use bullets for points and beautify it be as creative as you want",
+#         log_output=True,
+#         enhance_prompt=False,
+#     ).execute()
 
-    return content_writer_task
+#     return content_writer_task
 
 
 
