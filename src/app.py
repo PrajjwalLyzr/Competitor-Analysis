@@ -3,7 +3,7 @@ import pandas as pd
 from fpdf import FPDF
 from openpyxl import Workbook
 import io
-from routes import CompetitorAnalysis
+from src.routes import CompetitorAnalysis
 
 app = Flask(__name__)
 app.register_blueprint(CompetitorAnalysis, url_prefix='')
