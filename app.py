@@ -3,7 +3,7 @@ import pandas as pd
 from fpdf import FPDF
 from openpyxl import Workbook
 import io
-from src.routes import CompetitorAnalysis
+from routes import CompetitorAnalysis
 
 app = Flask(__name__)
 app.register_blueprint(CompetitorAnalysis, url_prefix='')
@@ -16,6 +16,6 @@ def index():
 
 
 
-# if __name__ == "__main__":
-#     app.run(debug=False, host="0.0.0.0")
+if __name__ == "__main__":
+    app.run(debug=True)
 

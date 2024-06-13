@@ -3,7 +3,7 @@ import datetime
 import os
 import re
 import json
-from src.utils import utils
+from utils import utils
 import newspaper
 from dotenv import load_dotenv
 from gnews import GNews
