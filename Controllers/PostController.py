@@ -1,3 +1,4 @@
+import os
 from flask import request, render_template, send_file
 import tempfile
 from reportlab.pdfgen import canvas
@@ -19,7 +20,8 @@ def analysis():
         html_weakness = markdown.markdown(weakness)
         html_opportunity = markdown.markdown(opportunity)
         html_threats = markdown.markdown(threat) 
-        with open(f'raw_data_files\{competitor_name}.txt', 'r') as file:
+        file_path = os.path.join('raw_data_files', f'{competitor_name}.txt')
+        with open(file_path, 'r') as file:
             text_data = file.read()  
         file_data = markdown.markdown(text_data) 
         return render_template('analysis.html', html_strength=html_strength, html_weakness=html_weakness, html_opportunity=html_opportunity, html_threats=html_threats, file_data=file_data)
