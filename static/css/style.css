@@ -100,10 +100,12 @@
 .company-data-child-first{
 
   display: flex;
+  text-align: left;
 }
 
 .company-data-child-second{
   display: flex;
+  text-align: left;
 }
 
 .card {
@@ -121,7 +123,7 @@
 }
 
 .weakness {
-  background-color: #f44336; /* Red */
+  background-color: #FF9800; /* Orange */
 }
 
 .opportunity {
@@ -129,7 +131,7 @@
 }
 
 .threat {
-  background-color: #FF9800; /* Orange */
+  background-color: #f44336; /* Red */
 }
 
 
@@ -151,5 +153,5 @@
   padding: 20px;
   margin: 10px;
   /* width: 80%; */
-  text-align: center;
+  text-align: left;
 }
